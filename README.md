@@ -32,10 +32,6 @@ municipios_rsviii_poblacion.csv | Población por rango de edad de municipios de 
 municipios_rsviii.csv | Municipios de la Región Sanitaria VIII (PBA) |
 kml_municipios | Mapa de base de municipios en formato kml |
 
-Mapas:
-
-![](mapa_casos_provincia.png?raw=true)
-![](mapa_casos_region.png?raw=true)
 
 Fuentes de datos:
 1. http://datos.salud.gob.ar/dataset/covid-19-casos-registrados-en-la-republica-argentina
