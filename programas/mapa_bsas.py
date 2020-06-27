@@ -17,7 +17,7 @@ def mapa_municipios(datos_mapa, columna_datos, ruta_imagen, titulo='', leyenda_p
     grosor_bordes = 0.1
     tamanio_rotulos=7
     tamanio_titulo=9
-    tamanio_leyenda=6
+    tamanio_leyenda=5
     # figura, tamaño, ejes
     fig, ax = plt.subplots(1, figsize=(ancho_pugadas, alto_pulgadas))       # crear figura y asignar tamaño
     plt.axis('equal')                                                       # mantener proporción latitud y longitud
@@ -90,14 +90,14 @@ ultima_actualizacion = datos_mapa.ix[1, 'ultima_actualizacion']
 
 # mapa 1: provincia bs as
 titulo = 'Casos confirmados - '+ultima_actualizacion
-leyenda = 'Elaborado en base a datos abiertos del Ministerio de Salud'
+leyenda = 'github.com/gpereyrairujo/datos-covid19\nelaborado en base a datos abiertos del Ministerio de Salud'
 ruta_imagen = carpeta_destino_mapas + 'mapa_casos_provincia.png'
 # dibujar mapa
 mapa_municipios(datos_mapa, 'Total', ruta_imagen, titulo, leyenda, rotulos=False, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=4.3, alto_pulgadas=5)
 
 # mapa 2: region centro-sudeste
 titulo = 'Casos confirmados - '+ultima_actualizacion
-leyenda = 'Elaborado en base a datos abiertos del Ministerio de Salud'
+leyenda = 'github.com/gpereyrairujo/datos-covid19 - elaborado en base a datos abiertos del Ministerio de Salud'
 ruta_imagen = carpeta_destino_mapas + 'mapa_casos_region.png'
 # filtrar por latitud y longitud
 datos_mapa = datos_mapa.loc[(datos_mapa['Latitud']<-35.7) & (datos_mapa['Longitud']>-60.8)]
