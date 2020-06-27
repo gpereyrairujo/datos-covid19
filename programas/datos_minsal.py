@@ -1,7 +1,5 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-import plotly.express as px
 
 # datos de entrada
 # fuente de datos Ministerio de Salud: http://datos.salud.gob.ar/dataset/covid-19-casos-registrados-en-la-republica-argentina
@@ -11,7 +9,7 @@ columnas_con_fechas = [8,9,11,13,15,22,24]
 separador = ','
 codificacion = 'utf-16'
 # datos locales
-carpeta_origen = './'
+carpeta_origen = '../csv/'
 archivo_municipios = 'municipios_latitud_longitud.csv'
 # dónde guardar los resultados
 carpeta_destino = carpeta_origen

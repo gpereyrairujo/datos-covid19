@@ -66,14 +66,12 @@ def mapa_municipios(datos_mapa, columna_datos, ruta_imagen, titulo='', leyenda_p
 
 # mapas
 
-carpeta_origen = './'
-carpeta_destino = carpeta_origen
-archivo_datos_mapa = 'kml_municipios/municipios.shp'
-archivo_casos_municipios = 'datos_minsal_acumulados_municipios_bsas.csv'
+ruta_mapa_base = '../mapas/kml_municipios/municipios.shp'
+ruta_casos_municipios = '../csv/datos_minsal_acumulados_municipios_bsas.csv'
+carpeta_destino_mapas = '../mapas/'
 
 # leer datos mapa base
-ruta = carpeta_origen + archivo_datos_mapa
-datos_mapa = gpd.read_file(ruta, encoding='utf-8')
+datos_mapa = gpd.read_file(ruta_mapa_base, encoding='utf-8')
 # dejar sólo pcia de bs as (código comienza con 06)
 datos_mapa = datos_mapa.loc[datos_mapa['IN1'].str[:2]=='06']
 # corrección de errores
@@ -81,8 +79,7 @@ datos_mapa.loc[datos_mapa['NAM']=='General las  Heras', 'NAM'] = 'General Las He
 datos_mapa.loc[datos_mapa['NAM']=='General la Madrid', 'NAM'] = 'General La Madrid'
 
 # leer datos de casos municipios
-ruta = carpeta_origen + archivo_casos_municipios
-datos_casos_municipios = pd.read_csv(ruta)
+datos_casos_municipios = pd.read_csv(ruta_casos_municipios)
 # unir la tabla de casos de municipios de la pcia de bs as y los datos del mapa base
 datos_mapa = datos_mapa.merge(datos_casos_municipios, left_on='NAM', right_on='Municipio', how='left')
 # calcular casos totales
@@ -92,16 +89,16 @@ ultima_actualizacion = datos_mapa.ix[1, 'ultima_actualizacion']
 
 
 # mapa 1: provincia bs as
-titulo = 'Casos confirmados de COVID-19 - '+ultima_actualizacion
+titulo = 'Casos confirmados - '+ultima_actualizacion
 leyenda = 'Elaborado en base a datos abiertos del Ministerio de Salud'
-ruta_imagen = carpeta_destino + 'mapa_casos_provincia.png'
+ruta_imagen = carpeta_destino_mapas + 'mapa_casos_provincia.png'
 # dibujar mapa
 mapa_municipios(datos_mapa, 'Total', ruta_imagen, titulo, leyenda, rotulos=False, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=4.3, alto_pulgadas=5)
 
 # mapa 2: region centro-sudeste
-titulo = 'Casos confirmados de COVID-19 - '+ultima_actualizacion
+titulo = 'Casos confirmados - '+ultima_actualizacion
 leyenda = 'Elaborado en base a datos abiertos del Ministerio de Salud'
-ruta_imagen = carpeta_destino + 'mapa_casos_region.png'
+ruta_imagen = carpeta_destino_mapas + 'mapa_casos_region.png'
 # filtrar por latitud y longitud
 datos_mapa = datos_mapa.loc[(datos_mapa['Latitud']<-35.7) & (datos_mapa['Longitud']>-60.8)]
 # dibujar mapa
