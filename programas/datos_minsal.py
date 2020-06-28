@@ -16,6 +16,8 @@ carpeta_destino = carpeta_origen
 archivo_destino_datos_completos = 'datos_minsal_completos.csv'
 archivo_destino_datos_completos_bsas = 'datos_minsal_completos_bsas.csv'
 archivo_destino_datos_acumulados_por_municipio_bsas = 'datos_minsal_acumulados_municipios_bsas.csv'
+archivo_destino_datos_diarios_por_municipio_bsas = 'datos_minsal_diarios_municipios_bsas.csv'
+archivo_destino_datos_evolucion_por_municipio_bsas = 'datos_minsal_evolucion_municipios_bsas.csv'
 
 
 # 1. leer datos del repositorio online
@@ -74,15 +76,10 @@ datos.to_csv(ruta, index=False)
 
 
 # 4. guardar listado completo de casos de municipios de la pcia de bs as
-# leer listado de municipios con latitud y longitud
-ruta = carpeta_origen + archivo_municipios
-datos_municipios = pd.read_csv(ruta)
 # filtrar base de datos y dejar sólo casos de Prov de Bs As
 # (tomar los casos con residencia y también carga en la prov de bs as)
 datos = datos.loc[datos['residencia_provincia_nombre']=='Buenos Aires']
 datos = datos.loc[datos['carga_provincia_nombre']=='Buenos Aires']
-# filtrar base de datos y dejar sólo casos de los municipios listados en el archivo de entrada
-datos = datos.loc[datos['residencia_departamento_nombre'].isin(datos_municipios['Municipio'])]
 # exportar los datos
 ruta = carpeta_destino + archivo_destino_datos_completos_bsas
 datos.to_csv(ruta, index=False)
@@ -90,16 +87,42 @@ datos.to_csv(ruta, index=False)
 
 # 5. armar tabla con total de casos activos, fallecidos y recuperados en cada municipio
 datos['casos'] = 1
-resultado = datos.pivot_table(
+tabla_casos_acumulados = datos.pivot_table(
     index=['residencia_departamento_nombre'], columns='clasificacion', values='casos',
     fill_value=0, aggfunc=np.sum
 )
+# leer listado de municipios con latitud y longitud
+ruta = carpeta_origen + archivo_municipios
+datos_municipios = pd.read_csv(ruta)
 # unir la tabla con los datos de población y coordenadas de cada municipio y la tabla de casos
-datos_municipios = pd.merge(datos_municipios, resultado, right_index=True, left_on='Municipio', how='left')
+datos_municipios = pd.merge(datos_municipios, tabla_casos_acumulados, right_index=True, left_on='Municipio', how='left')
 # completar datos faltantes (NaN) con ceros
 datos_municipios = datos_municipios.fillna(0)
 # agregar fecha de última actualización
 datos_municipios['ultima_actualizacion'] = ultima_actualizacion
-# exportar datos casos acumulados por municipio
+# exportar datos
 ruta = carpeta_destino + archivo_destino_datos_acumulados_por_municipio_bsas
 datos_municipios.to_csv(ruta, index=False)
+
+
+# 6. armar tabla de casos diarios en cada municipio
+datos['casos'] = 1
+tabla_casos_diarios = datos.pivot_table(
+    index=['fecha_apertura'], columns='residencia_departamento_nombre', values='casos',
+    fill_value=0, aggfunc=np.sum
+)
+# rellenar datos faltantes (días que no hubo casos) haciendo un 'resampling' con paso diario ('D')
+tabla_casos_diarios = tabla_casos_diarios.resample('D').sum().fillna(0)
+# exportar datos
+ruta = carpeta_destino + archivo_destino_datos_diarios_por_municipio_bsas
+tabla_casos_diarios.to_csv(ruta, index=True)
+
+
+# 7. armar tabla con la evolucion de casos diarios acumulados en cada municipio
+tabla_evolucion_casos = tabla_casos_diarios.cumsum()
+# exportar datos
+ruta = carpeta_destino + archivo_destino_datos_evolucion_por_municipio_bsas
+tabla_evolucion_casos.to_csv(ruta, index=True)
+
+
+print(tabla_evolucion_casos)
