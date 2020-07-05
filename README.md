@@ -2,6 +2,7 @@
 
 ![](mapas/mapa_casos_provincia.png?raw=true)
 ![](mapas/mapa_casos_region.png?raw=true)
+![](mapas/mapa_casos_region_ultimos_dias.png?raw=true)
 
 Carpeta `programas`
 
@@ -17,6 +18,7 @@ Archivo | Datos | Código | Fuente de datos
 --- | --- | --- | ---
 mapa_casos_provincia.png | Mapa de casos confirmados por municipio de la Pcia. de Bs. As. | mapa_bsas.py | 1
 mapa_casos_region.png | Mapa de casos confirmados en municipios del centro-sudeste de Bs. As. | mapa_bsas.py | 1
+mapa_casos_region_ultimos_dias.png | Mapa de casos confirmados en municipios del centro-sudeste de Bs. As. en los últimos días | mapa_bsas.py | 1
 
 
 Carpeta `datos`
