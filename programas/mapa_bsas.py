@@ -4,13 +4,13 @@ import pandas as pd
 import numpy as np
 
 
-def mapa_municipios(datos_mapa, columna_datos, ruta_imagen, titulo='', leyenda_pie='', rotulos=True, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=7, alto_pulgadas=5):
+def mapa_municipios(datos_mapa, columna_datos, ruta_imagen, titulo='', leyenda_pie='', rotulos=True, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=7, alto_pulgadas=5, paleta='Blues'):
     columna_municipio = 'Municipio'
     # calcular logaritmo para usar esos valores para la escala de color del mapa
     columna_datos_log = 'datos_log'
     datos_mapa[columna_datos_log] = np.log10(datos_mapa[columna_datos])
     # paleta de colores, bordes, texto
-    paleta_colores = plt.cm.get_cmap('Blues')
+    paleta_colores = plt.cm.get_cmap(paleta)
     paleta_colores.set_under('white')           # valores por debajo del mínimo (ceros)
     color_fondo = 'white'
     color_bordes = 'darkred'
@@ -68,6 +68,9 @@ def mapa_municipios(datos_mapa, columna_datos, ruta_imagen, titulo='', leyenda_p
 
 ruta_mapa_base = '../mapas/kml_municipios/municipios.shp'
 ruta_casos_municipios = '../csv/datos_minsal_acumulados_municipios_bsas.csv'
+ruta_casos_diarios_municipios = '../csv/datos_minsal_diarios_municipios_bsas.csv'
+ruta_evolucion_casos_municipios = '../csv/datos_minsal_evolucion_municipios_bsas.csv'
+ruta_municipios_rsviii = '../csv/municipios_rsviii.csv'
 carpeta_destino_mapas = '../mapas/'
 
 # leer datos mapa base
@@ -95,8 +98,9 @@ ruta_imagen = carpeta_destino_mapas + 'mapa_casos_provincia.png'
 # dibujar mapa
 mapa_municipios(datos_mapa, 'Total', ruta_imagen, titulo, leyenda, rotulos=False, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=4.3, alto_pulgadas=5)
 
+
 # mapa 2: region centro-sudeste
-titulo = 'Casos confirmados - '+ultima_actualizacion
+titulo = 'Casos confirmados totales - '+ultima_actualizacion
 leyenda = 'github.com/gpereyrairujo/datos-covid19 - elaborado en base a datos abiertos del Ministerio de Salud'
 ruta_imagen = carpeta_destino_mapas + 'mapa_casos_region.png'
 # filtrar por latitud y longitud
@@ -104,3 +108,45 @@ datos_mapa = datos_mapa.loc[(datos_mapa['Latitud']<-35.7) & (datos_mapa['Longitu
 # dibujar mapa
 mapa_municipios(datos_mapa, 'Total', ruta_imagen, titulo, leyenda, rotulos=True, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=7, alto_pulgadas=5)
 
+
+
+# leer tabla de casos diarios por municipio
+datos_evolucion_casos_municipios = pd.read_csv(ruta_evolucion_casos_municipios)
+datos_evolucion_casos_municipios = datos_evolucion_casos_municipios.set_index('fecha_apertura')
+# leer listado de municipios región sanitaria viii
+datos_municipios_rsviii = pd.read_csv(ruta_municipios_rsviii)
+# hacer gráfico
+fig, ax = plt.subplots(1, figsize=(7, 5))
+# filtrar municipios
+#municipios_rsviii = datos_municipios_rsviii['Municipio']
+municipios_rsviii = datos_mapa['Municipio']
+municipios_con_datos = datos_evolucion_casos_municipios.columns
+municipios_rsviii_con_datos = [m for m in municipios_rsviii if m in municipios_con_datos]
+datos_evolucion_casos_municipios = datos_evolucion_casos_municipios[municipios_rsviii_con_datos]
+# graficar
+datos_evolucion_casos_municipios.plot(ax=ax)
+#plt.show(block=True)
+
+
+# calular casos últimos días
+ultimos_dias = 7
+casos_ultimos_dias = datos_evolucion_casos_municipios.diff(periods=ultimos_dias)
+# crear nueva tabla de datos
+casos_ultimos_dias = casos_ultimos_dias.iloc[-1].to_frame().reset_index()
+# renombrar columnas
+casos_ultimos_dias.columns = ['Municip', 'casos_ultimos_dias']
+# unir los datos de casos de los últimos días a la tabla de datos del mapa anterior
+datos_mapa_ultimos_dias = datos_mapa.merge(casos_ultimos_dias, left_on='Municipio', right_on='Municip', how='left')
+# rellenar con 0 los municipios sin datos
+datos_mapa_ultimos_dias = datos_mapa_ultimos_dias.fillna(0)
+print(datos_mapa_ultimos_dias)
+
+
+# mapa 3: casos últimos días region centro-sudeste
+titulo = 'Casos confirmados últimos ' + str(ultimos_dias) + ' días - ' + ultima_actualizacion
+leyenda = 'github.com/gpereyrairujo/datos-covid19 - elaborado en base a datos abiertos del Ministerio de Salud'
+ruta_imagen = carpeta_destino_mapas + 'mapa_casos_region_ultimos_dias.png'
+# dibujar mapa
+mapa_municipios(datos_mapa_ultimos_dias, 'casos_ultimos_dias', ruta_imagen, titulo, leyenda, rotulos=True, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=7, alto_pulgadas=5, paleta='Reds')
+
+plt.show(block=True)
