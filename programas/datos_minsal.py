@@ -18,6 +18,7 @@ archivo_destino_datos_completos_bsas = 'datos_minsal_completos_bsas.csv'
 archivo_destino_datos_acumulados_por_municipio_bsas = 'datos_minsal_acumulados_municipios_bsas.csv'
 archivo_destino_datos_diarios_por_municipio_bsas = 'datos_minsal_diarios_municipios_bsas.csv'
 archivo_destino_datos_evolucion_por_municipio_bsas = 'datos_minsal_evolucion_municipios_bsas.csv'
+archivo_destino_datos_positividad_por_municipio_bsas = 'datos_minsal_positividad_municipios_bsas.csv'
 
 
 # 1. leer datos del repositorio online
@@ -26,7 +27,7 @@ datos = pd.read_csv(url_archivo_origen, sep=separador, encoding=codificacion, sk
 
 # 2. procesar datos
 # dejar sólo casos confirmados
-datos = datos.loc[datos['clasificacion_resumen']=='Confirmado']
+#datos = datos.loc[datos['clasificacion_resumen']=='Confirmado']
 # agregar una clasificación simplificada de casos en Activo, Recuperado y Fallecido
 datos.loc[datos['CLASIFICACION']=='Caso confirmado - Fallecido', 'clasificacion'] = 'Fallecido'
 datos.loc[datos['CLASIFICACION'].isin([
@@ -41,12 +42,15 @@ datos.loc[datos['CLASIFICACION'].isin([
 datos['edad_actual_anios'] = datos['edad']
 datos.loc[datos['edad_años_meses']=='Meses','edad_actual_anios'] = 0
 # estadísticas resumen y chequeo de datos
+total_descartados =     datos.loc[datos['clasificacion_resumen']=='Descartado', 'id_evento_caso'].count()
 total_confirmados_1 =   datos.loc[datos['clasificacion_resumen']=='Confirmado', 'id_evento_caso'].count()
+total_casos =           total_descartados + total_confirmados_1
+positividad =           total_confirmados_1 / total_casos
 total_activos =         datos.loc[datos['clasificacion']=='Activo', 'id_evento_caso'].count()
 total_recuperados =     datos.loc[datos['clasificacion']=='Recuperado', 'id_evento_caso'].count()
 total_fallecidos =      datos.loc[datos['clasificacion']=='Fallecido', 'id_evento_caso'].count()
 total_confirmados_2 =   total_activos + total_recuperados + total_fallecidos
-edad_promedio_confirmados =     round(datos['edad_actual_anios'].mean(),1)
+edad_promedio_confirmados =     round(datos.loc[datos['clasificacion_resumen']=='Confirmado', 'edad_actual_anios'].mean(),1)
 edad_promedio_activos =         round(datos.loc[datos['clasificacion']=='Activo', 'edad_actual_anios'].mean(),1)
 edad_promedio_recuperados =     round(datos.loc[datos['clasificacion']=='Recuperado', 'edad_actual_anios'].mean(),1)
 edad_promedio_fallecidos =      round(datos.loc[datos['clasificacion']=='Fallecido', 'edad_actual_anios'].mean(),1)
@@ -63,14 +67,17 @@ print('Edad promedio confirmados:', edad_promedio_confirmados)
 print('Edad promedio activos:', edad_promedio_activos)
 print('Edad promedio recuperados:', edad_promedio_recuperados)
 print('Edad promedio fallecidos:', edad_promedio_fallecidos)
+print('Total casos:', total_casos)
 print('Total confirmados (columna clasificacion_resumen):', total_confirmados_1)
 print('Total confirmados (columna clasificacion):', total_confirmados_2)
+print('Positividad:', positividad)
 print('Inicio casos',inicio_casos)
 print('Fin casos',fin_casos)
 print('Datos correspondientes al día',ultima_actualizacion)
 
 
 # 3. guardar listado completo de casos confirmados (archivo mucho más chico que el original completo)
+datos_confirmados = datos.loc[datos['clasificacion_resumen']=='Confirmado']
 ruta = carpeta_destino + archivo_destino_datos_completos
 datos.to_csv(ruta, index=False)
 
@@ -85,8 +92,8 @@ ruta = carpeta_destino + archivo_destino_datos_completos_bsas
 datos.to_csv(ruta, index=False)
 
 
-# 5. armar tabla con total de casos activos, fallecidos y recuperados en cada municipio
-datos['casos'] = 1
+# 5. armar tabla con total de casos confirmados activos, fallecidos y recuperados en cada municipio
+datos.loc[datos['clasificacion_resumen']=='Confirmado', 'casos'] = 1
 tabla_casos_acumulados = datos.pivot_table(
     index=['residencia_departamento_nombre'], columns='clasificacion', values='casos',
     fill_value=0, aggfunc=np.sum
@@ -105,24 +112,44 @@ ruta = carpeta_destino + archivo_destino_datos_acumulados_por_municipio_bsas
 datos_municipios.to_csv(ruta, index=False)
 
 
-# 6. armar tabla de casos diarios en cada municipio
-datos['casos'] = 1
-tabla_casos_diarios = datos.pivot_table(
-    index=['fecha_apertura'], columns='residencia_departamento_nombre', values='casos',
+# 6. armar tabla de casos *confirmados* diarios en cada municipio
+datos.loc[datos['clasificacion_resumen']=='Confirmado', 'confirmados'] = 1
+tabla_casos_confirmados_diarios = datos.pivot_table(
+    index=['fecha_apertura'], columns='residencia_departamento_nombre', values='confirmados',
     fill_value=0, aggfunc=np.sum
 )
 # rellenar datos faltantes (días que no hubo casos) haciendo un 'resampling' con paso diario ('D')
-tabla_casos_diarios = tabla_casos_diarios.resample('D').sum().fillna(0)
+tabla_casos_confirmados_diarios = tabla_casos_confirmados_diarios.resample('D').sum().fillna(0)
 # exportar datos
 ruta = carpeta_destino + archivo_destino_datos_diarios_por_municipio_bsas
-tabla_casos_diarios.to_csv(ruta, index=True)
+tabla_casos_confirmados_diarios.to_csv(ruta, index=True)
 
 
 # 7. armar tabla con la evolucion de casos diarios acumulados en cada municipio
-tabla_evolucion_casos = tabla_casos_diarios.cumsum()
+tabla_evolucion_casos = tabla_casos_confirmados_diarios.cumsum()
 # exportar datos
 ruta = carpeta_destino + archivo_destino_datos_evolucion_por_municipio_bsas
 tabla_evolucion_casos.to_csv(ruta, index=True)
 
 
-print(tabla_evolucion_casos)
+# 8. calcular positividad por períodos de x días (los valores diarios podrían ser muy variables)
+# armar tabla de casos *totales* (descartados y confirmados, sin incluir sospechosos) diarios en cada municipio
+datos.loc[datos['clasificacion_resumen']=='Descartado', 'totales'] = 1
+datos.loc[datos['clasificacion_resumen']=='Confirmado', 'totales'] = 1
+tabla_casos_totales_diarios = datos.pivot_table(
+    index=['fecha_apertura'], columns='residencia_departamento_nombre', values='totales',
+    fill_value=0, aggfunc=np.sum
+)
+# rellenar datos faltantes (días que no hubo casos) haciendo un 'resampling' con paso diario ('D')
+tabla_casos_totales_diarios = tabla_casos_totales_diarios.resample('D').sum().fillna(0)
+# acumular datos por período de x días
+periodo = 7
+tabla_casos_totales_por_periodos        = tabla_casos_totales_diarios.rolling(periodo).sum()
+tabla_casos_confirmados_por_periodos    = tabla_casos_confirmados_diarios.rolling(periodo).sum()
+# calcular positividad
+tabla_positividad_por_periodos = tabla_casos_confirmados_por_periodos.div(tabla_casos_totales_por_periodos)
+# rellenar datos faltantes (días que no hubo casos) haciendo un 'resampling' con paso diario ('D')
+tabla_positividad_por_periodos = tabla_positividad_por_periodos.resample('D').sum().fillna(0)
+# exportar datos
+ruta = carpeta_destino + archivo_destino_datos_positividad_por_municipio_bsas
+tabla_positividad_por_periodos.to_csv(ruta, index=True)
