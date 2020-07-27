@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 
-def mapa_municipios(datos_mapa, columna_datos, ruta_imagen, titulo='', leyenda_pie='', rotulos=True, leyenda_escala=True, escala_log=True, maximo_escala_log=3, maximo_escala_lineal=75, ancho_pugadas=7, alto_pulgadas=5, paleta='Blues'):
+def mapa_municipios(datos_mapa, columna_datos, ruta_imagen, titulo='', subtitulo='', leyenda_pie='', rotulos=True, leyenda_escala=True, escala_log=True, maximo_escala_log=3, maximo_escala_lineal=75, ancho_pugadas=7, alto_pulgadas=5, paleta='Blues'):
     columna_municipio = 'Municipio'
     # calcular logaritmo para usar esos valores para la escala de color del mapa
     if(escala_log):
@@ -18,6 +18,7 @@ def mapa_municipios(datos_mapa, columna_datos, ruta_imagen, titulo='', leyenda_p
     grosor_bordes = 0.1
     tamanio_rotulos=7
     tamanio_titulo=9
+    tamanio_subtitulo=8
     tamanio_leyenda=5
     # figura, tamaño, ejes
     fig, ax = plt.subplots(1, figsize=(ancho_pugadas, alto_pulgadas))       # crear figura y asignar tamaño
@@ -52,7 +53,9 @@ def mapa_municipios(datos_mapa, columna_datos, ruta_imagen, titulo='', leyenda_p
     # leyendas
     izquierda, derecha = plt.xlim()     # límites del mapa en x
     abajo, arriba = plt.ylim()          # límites del mapa en y
-    plt.text((izquierda+derecha)/2, arriba, titulo, {'color': 'black', 'fontsize': tamanio_titulo, 'ha': 'center', 'fontweight': 'bold'})
+    pos_y_subtitulo = arriba + (abajo-arriba)/100 * 4
+    plt.text(izquierda, arriba, titulo, {'color': paleta_colores(0.5), 'fontsize': tamanio_titulo, 'ha': 'left', 'fontweight': 'bold'})
+    plt.text(izquierda, pos_y_subtitulo, subtitulo, {'color': paleta_colores(0.5), 'fontsize': tamanio_subtitulo, 'ha': 'left', 'fontweight': 'bold'})
     plt.text(izquierda, abajo, leyenda_pie, {'color': 'black', 'fontsize': tamanio_leyenda})
     # leyenda rangos de colores
     if(leyenda_escala):
@@ -75,7 +78,7 @@ def mapa_municipios(datos_mapa, columna_datos, ruta_imagen, titulo='', leyenda_p
                 {'color':'black', 'fontsize':tamanio_rotulos, 'ha':'right', 'va':'center'},
                 bbox=dict(boxstyle="round", facecolor=color, edgecolor=color_bordes, linewidth=0.1))
     # guardar mapa
-    plt.savefig(ruta_imagen, facecolor=fig.get_facecolor(), bbox_inches = 'tight', pad_inches = 0.1)
+    plt.savefig(ruta_imagen, facecolor=fig.get_facecolor(), bbox_inches = 'tight', pad_inches = 0.1, dpi=150)
 
 
 
@@ -109,21 +112,21 @@ ultima_actualizacion = datos_mapa.ix[1, 'ultima_actualizacion']
 
 
 # mapa 1: provincia bs as
-titulo = 'Casos confirmados - '+ultima_actualizacion
+titulo = 'Casos confirmados'
 leyenda = 'github.com/gpereyrairujo/datos-covid19\nelaborado en base a datos abiertos del Ministerio de Salud'
 ruta_imagen = carpeta_destino_mapas + 'mapa_casos_provincia.png'
 # dibujar mapa
-mapa_municipios(datos_mapa, 'Total', ruta_imagen, titulo, leyenda, rotulos=False, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=4.3, alto_pulgadas=5)
+mapa_municipios(datos_mapa, 'Total', ruta_imagen, titulo, ultima_actualizacion, leyenda, rotulos=False, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=4.3, alto_pulgadas=5)
 
 
 # mapa 2: region centro-sudeste
-titulo = 'Casos confirmados totales - '+ultima_actualizacion
+titulo = 'Casos confirmados totales'
 leyenda = 'github.com/gpereyrairujo/datos-covid19 - elaborado en base a datos abiertos del Ministerio de Salud'
 ruta_imagen = carpeta_destino_mapas + 'mapa_casos_region.png'
 # filtrar por latitud y longitud
 datos_mapa = datos_mapa.loc[(datos_mapa['Latitud']<-35.7) & (datos_mapa['Longitud']>-60.8)]
 # dibujar mapa
-mapa_municipios(datos_mapa, 'Total', ruta_imagen, titulo, leyenda, rotulos=True, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=7, alto_pulgadas=5)
+mapa_municipios(datos_mapa, 'Total', ruta_imagen, titulo, ultima_actualizacion, leyenda, rotulos=True, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=7, alto_pulgadas=5)
 
 
 
@@ -160,11 +163,11 @@ print(datos_mapa_ultimos_dias)
 
 
 # mapa 3: casos últimos días region centro-sudeste
-titulo = 'Casos confirmados últimos ' + str(ultimos_dias) + ' días - ' + ultima_actualizacion
+titulo = 'Casos confirmados últimos ' + str(ultimos_dias) + ' días'
 leyenda = 'github.com/gpereyrairujo/datos-covid19 - elaborado en base a datos abiertos del Ministerio de Salud'
 ruta_imagen = carpeta_destino_mapas + 'mapa_casos_region_ultimos_dias.png'
 # dibujar mapa
-mapa_municipios(datos_mapa_ultimos_dias, 'casos_ultimos_dias', ruta_imagen, titulo, leyenda, rotulos=True, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=7, alto_pulgadas=5, paleta='Reds')
+mapa_municipios(datos_mapa_ultimos_dias, 'casos_ultimos_dias', ruta_imagen, titulo, ultima_actualizacion, leyenda, rotulos=True, leyenda_escala=True, maximo_escala_log=3, ancho_pugadas=7, alto_pulgadas=5, paleta='Reds')
 
 
 
@@ -180,7 +183,7 @@ municipios_rsviii_con_datos = [m for m in municipios_rsviii if m in municipios_c
 datos_movilidad_diarios_municipios = datos_movilidad_diarios_municipios[municipios_rsviii_con_datos]
 
 # calular movilidad promedio últimos días
-ultimos_dias_movilidad = 14
+ultimos_dias_movilidad = 7
 movilidad_ultimos_dias = datos_movilidad_diarios_municipios.rolling(ultimos_dias).mean()
 # crear nueva tabla de datos
 movilidad_ultimos_dias = movilidad_ultimos_dias.iloc[-1].to_frame().reset_index()
@@ -195,14 +198,14 @@ datos_mapa_movilidad = datos_mapa.merge(movilidad_ultimos_dias, left_on='Municip
 print(datos_mapa_movilidad)
 
 # mapa 4: movilidad últimos días region centro-sudeste
-titulo = 'Disminución de la movilidad (% promedio ' + str(ultimos_dias_movilidad) + ' días) - ' + ultima_actualizacion
+titulo = 'Disminución de la movilidad (% promedio ' + str(ultimos_dias_movilidad) + ' días)'
 leyenda = 'github.com/gpereyrairujo/datos-covid19 - elaborado en base a datos abiertos de humdata.org'
 ruta_imagen = carpeta_destino_mapas + 'mapa_movilidad_region_ultimos_dias.png'
 # dibujar mapa
 mapa_municipios(
     datos_mapa_movilidad, 'movilidad_ultimos_dias', 
     ruta_imagen, 
-    titulo, leyenda, 
+    titulo, ultima_actualizacion, leyenda, 
     rotulos=True, leyenda_escala=True, 
     escala_log=False, maximo_escala_lineal=60, 
     ancho_pugadas=7, alto_pulgadas=5, 
@@ -242,14 +245,14 @@ print(datos_mapa_positividad)
 
 # mapa 5: positividad últimos días region centro-sudeste
 ultimos_dias_positividad = 7
-titulo = 'Positividad de testeos (% promedio ' + str(ultimos_dias_positividad) + ' días) - ' + ultima_actualizacion
+titulo = 'Positividad de testeos (% promedio ' + str(ultimos_dias_positividad) + ' días)'
 leyenda = 'github.com/gpereyrairujo/datos-covid19 - elaborado en base a datos abiertos del Ministerio de Salud'
 ruta_imagen = carpeta_destino_mapas + 'mapa_positividad_region_ultimos_dias.png'
 # dibujar mapa
 mapa_municipios(
     datos_mapa_positividad, 'positividad_ultimo_periodo', 
     ruta_imagen, 
-    titulo, leyenda, 
+    titulo, ultima_actualizacion, leyenda, 
     rotulos=True, leyenda_escala=True, 
     escala_log=False, maximo_escala_lineal=60, 
     ancho_pugadas=7, alto_pulgadas=5, 

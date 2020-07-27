@@ -29,15 +29,15 @@ datos = pd.read_csv(url_archivo_origen, sep=separador, encoding=codificacion, sk
 # dejar sólo casos confirmados
 #datos = datos.loc[datos['clasificacion_resumen']=='Confirmado']
 # agregar una clasificación simplificada de casos en Activo, Recuperado y Fallecido
-datos.loc[datos['CLASIFICACION']=='Caso confirmado - Fallecido', 'clasificacion'] = 'Fallecido'
-datos.loc[datos['CLASIFICACION'].isin([
+datos.loc[datos['clasificacion']=='Caso confirmado - Fallecido', 'clasificacion_simple'] = 'Fallecido'
+datos.loc[datos['clasificacion'].isin([
     'Caso confirmado - No activo (por laboratorio y tiempo de evolución)',
     'Caso confirmado - No Activo por criterio de laboratorio',
-    'Caso confirmado - No activo (por tiempo de evolución)']), 'clasificacion'] = 'Recuperado'
-datos.loc[datos['CLASIFICACION'].isin([
+    'Caso confirmado - No activo (por tiempo de evolución)']), 'clasificacion_simple'] = 'Recuperado'
+datos.loc[datos['clasificacion'].isin([
     'Caso confirmado - Activo ',
     'Caso confirmado - Activo Internado',
-    'Caso confirmado - Activo con seguimiento negativo']), 'clasificacion'] = 'Activo'
+    'Caso confirmado - Activo con seguimiento negativo']), 'clasificacion_simple'] = 'Activo'
 # crear nueva columna con edad en años a partir de la edad en años o meses
 datos['edad_actual_anios'] = datos['edad']
 datos.loc[datos['edad_años_meses']=='Meses','edad_actual_anios'] = 0
@@ -46,14 +46,14 @@ total_descartados =     datos.loc[datos['clasificacion_resumen']=='Descartado', 
 total_confirmados_1 =   datos.loc[datos['clasificacion_resumen']=='Confirmado', 'id_evento_caso'].count()
 total_casos =           total_descartados + total_confirmados_1
 positividad =           total_confirmados_1 / total_casos
-total_activos =         datos.loc[datos['clasificacion']=='Activo', 'id_evento_caso'].count()
-total_recuperados =     datos.loc[datos['clasificacion']=='Recuperado', 'id_evento_caso'].count()
-total_fallecidos =      datos.loc[datos['clasificacion']=='Fallecido', 'id_evento_caso'].count()
+total_activos =         datos.loc[datos['clasificacion_simple']=='Activo', 'id_evento_caso'].count()
+total_recuperados =     datos.loc[datos['clasificacion_simple']=='Recuperado', 'id_evento_caso'].count()
+total_fallecidos =      datos.loc[datos['clasificacion_simple']=='Fallecido', 'id_evento_caso'].count()
 total_confirmados_2 =   total_activos + total_recuperados + total_fallecidos
 edad_promedio_confirmados =     round(datos.loc[datos['clasificacion_resumen']=='Confirmado', 'edad_actual_anios'].mean(),1)
-edad_promedio_activos =         round(datos.loc[datos['clasificacion']=='Activo', 'edad_actual_anios'].mean(),1)
-edad_promedio_recuperados =     round(datos.loc[datos['clasificacion']=='Recuperado', 'edad_actual_anios'].mean(),1)
-edad_promedio_fallecidos =      round(datos.loc[datos['clasificacion']=='Fallecido', 'edad_actual_anios'].mean(),1)
+edad_promedio_activos =         round(datos.loc[datos['clasificacion_simple']=='Activo', 'edad_actual_anios'].mean(),1)
+edad_promedio_recuperados =     round(datos.loc[datos['clasificacion_simple']=='Recuperado', 'edad_actual_anios'].mean(),1)
+edad_promedio_fallecidos =      round(datos.loc[datos['clasificacion_simple']=='Fallecido', 'edad_actual_anios'].mean(),1)
 fecha_apertura_min = datos['fecha_apertura'].min()
 fecha_apertura_max = datos['fecha_apertura'].max()
 fecha_ultima_actualizacion =  datos['ultima_actualizacion'].max()
@@ -79,7 +79,7 @@ print('Datos correspondientes al día',ultima_actualizacion)
 # 3. guardar listado completo de casos confirmados (archivo mucho más chico que el original completo)
 datos_confirmados = datos.loc[datos['clasificacion_resumen']=='Confirmado']
 ruta = carpeta_destino + archivo_destino_datos_completos
-datos.to_csv(ruta, index=False)
+datos_confirmados.to_csv(ruta, index=False)
 
 
 # 4. guardar listado completo de casos de municipios de la pcia de bs as
@@ -95,7 +95,7 @@ datos.to_csv(ruta, index=False)
 # 5. armar tabla con total de casos confirmados activos, fallecidos y recuperados en cada municipio
 datos.loc[datos['clasificacion_resumen']=='Confirmado', 'casos'] = 1
 tabla_casos_acumulados = datos.pivot_table(
-    index=['residencia_departamento_nombre'], columns='clasificacion', values='casos',
+    index=['residencia_departamento_nombre'], columns='clasificacion_simple', values='casos',
     fill_value=0, aggfunc=np.sum
 )
 # leer listado de municipios con latitud y longitud
