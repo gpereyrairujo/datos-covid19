@@ -108,7 +108,7 @@ datos_mapa = datos_mapa.merge(datos_casos_municipios, left_on='NAM', right_on='M
 # calcular casos totales
 datos_mapa['Total']=datos_mapa['Activo']+datos_mapa['Fallecido']+datos_mapa['Recuperado']
 # fecha de última actualización
-ultima_actualizacion = datos_mapa.ix[1, 'ultima_actualizacion']
+ultima_actualizacion = datos_mapa.loc[1, 'ultima_actualizacion']
 
 
 # mapa 1: provincia bs as
@@ -245,7 +245,7 @@ print(datos_mapa_positividad)
 
 # mapa 5: positividad últimos días region centro-sudeste
 ultimos_dias_positividad = 7
-titulo = 'Positividad de testeos (% promedio ' + str(ultimos_dias_positividad) + ' días)'
+titulo = 'Positividad de casos (% promedio ' + str(ultimos_dias_positividad) + ' días)'
 leyenda = 'github.com/gpereyrairujo/datos-covid19 - elaborado en base a datos abiertos del Ministerio de Salud'
 ruta_imagen = carpeta_destino_mapas + 'mapa_positividad_region_ultimos_dias.png'
 # dibujar mapa

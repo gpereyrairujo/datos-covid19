@@ -42,9 +42,11 @@ datos.loc[datos['clasificacion'].isin([
 datos['edad_actual_anios'] = datos['edad']
 datos.loc[datos['edad_años_meses']=='Meses','edad_actual_anios'] = 0
 # estadísticas resumen y chequeo de datos
-total_descartados =     datos.loc[datos['clasificacion_resumen']=='Descartado', 'id_evento_caso'].count()
 total_confirmados_1 =   datos.loc[datos['clasificacion_resumen']=='Confirmado', 'id_evento_caso'].count()
-total_casos =           total_descartados + total_confirmados_1
+total_descartados =     datos.loc[datos['clasificacion_resumen']=='Descartado', 'id_evento_caso'].count()
+total_sospechosos =     datos.loc[datos['clasificacion_resumen']=='Sospechoso', 'id_evento_caso'].count()
+total_sin_clasificar =  datos.loc[datos['clasificacion_resumen']=='Sin Clasificar', 'id_evento_caso'].count()
+total_casos =           total_confirmados_1 + total_descartados
 positividad =           total_confirmados_1 / total_casos
 total_activos =         datos.loc[datos['clasificacion_simple']=='Activo', 'id_evento_caso'].count()
 total_recuperados =     datos.loc[datos['clasificacion_simple']=='Recuperado', 'id_evento_caso'].count()
