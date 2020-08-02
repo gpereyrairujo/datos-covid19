@@ -1,4 +1,4 @@
-## Municipio de Gral. Pueyrredón
+﻿## Municipio de Gral. Pueyrredón
 
 ### Casos confirmados
 
@@ -6,8 +6,8 @@
 
 ### Proyección de casos
 
-![](https://github.com/gpereyrairujo/datos-covid19/raw/main/graficos/proyeccion_22_7_al_5_8.png?raw=true)
-![](https://github.com/gpereyrairujo/datos-covid19/raw/main/graficos/proyeccion_activos_22_7_al_5_8.png?raw=true)
+![](https://github.com/gpereyrairujo/datos-covid19/raw/main/graficos/proyeccion_05_08.png?raw=true)
+![](https://github.com/gpereyrairujo/datos-covid19/raw/main/graficos/proyeccion_activos_05_08.png?raw=true)
 
 ### Casos según nexo epidemiológico
 
