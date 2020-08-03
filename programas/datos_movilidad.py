@@ -5,7 +5,7 @@ import numpy as np
 # datos de movilidad
 # fuente de datos: https://data.humdata.org/dataset/movement-range-maps
 carpeta_origen = '../csv/'
-archivo_movilidad = 'datos_movilidad.csv'
+archivo_movilidad = 'datos_movilidad.zip'
 columnas_con_fechas = [0]
 separador = '\t'            # separado por tabulaciones
 codificacion = 'utf-8'
