@@ -7,6 +7,7 @@
 ### Proyecciones de casos
 
 ![](https://github.com/gpereyrairujo/datos-covid19/raw/main/graficos/proyeccion_25_08.png?raw=true)
+![](https://github.com/gpereyrairujo/datos-covid19/raw/main/graficos/proyeccion_activos_25_08.png?raw=true)
 ![](https://github.com/gpereyrairujo/datos-covid19/raw/main/graficos/proyeccion_05_08.png?raw=true)
 ![](https://github.com/gpereyrairujo/datos-covid19/raw/main/graficos/proyeccion_activos_05_08.png?raw=true)
 
