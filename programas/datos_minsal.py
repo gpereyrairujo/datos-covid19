@@ -7,7 +7,7 @@ import numpy as np
 url_archivo_origen = 'https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.csv'
 columnas_con_fechas = [8,9,11,13,15,22,24]
 separador = ','
-codificacion = 'utf-16'
+codificacion = 'utf-8'
 # datos locales
 carpeta_origen = '../csv/'
 archivo_municipios = 'municipios_latitud_longitud.csv'
@@ -29,15 +29,23 @@ datos = pd.read_csv(url_archivo_origen, sep=separador, encoding=codificacion, sk
 # dejar sólo casos confirmados
 #datos = datos.loc[datos['clasificacion_resumen']=='Confirmado']
 # agregar una clasificación simplificada de casos en Activo, Recuperado y Fallecido
-datos.loc[datos['clasificacion']=='Caso confirmado - Fallecido', 'clasificacion_simple'] = 'Fallecido'
+datos.loc[datos['clasificacion'].isin([
+    'Caso confirmado por criterio clínico-epidemiologico - Fallecido',
+    'Caso confirmado - Fallecido']), 
+    'clasificacion_simple'] = 'Fallecido'
 datos.loc[datos['clasificacion'].isin([
     'Caso confirmado - No activo (por laboratorio y tiempo de evolución)',
     'Caso confirmado - No Activo por criterio de laboratorio',
-    'Caso confirmado - No activo (por tiempo de evolución)']), 'clasificacion_simple'] = 'Recuperado'
+    'Caso confirmado por laboratorio - No Activo por criterio de laboratorio',
+    'Caso confirmado - No activo (por tiempo de evolución)']), 
+    'clasificacion_simple'] = 'Recuperado'
 datos.loc[datos['clasificacion'].isin([
-    'Caso confirmado - Activo ',
+    'Caso confirmado - Activo',
     'Caso confirmado - Activo Internado',
-    'Caso confirmado - Activo con seguimiento negativo']), 'clasificacion_simple'] = 'Activo'
+    'Caso confirmado por laboratorio - Activo Internado',
+    'Caso confirmado por criterio clínico - epidemiológico -  Activo internado'
+    'Caso confirmado - Activo con seguimiento negativo']), 
+    'clasificacion_simple'] = 'Activo'
 # crear nueva columna con edad en años a partir de la edad en años o meses
 datos['edad_actual_anios'] = datos['edad']
 datos.loc[datos['edad_años_meses']=='Meses','edad_actual_anios'] = 0
