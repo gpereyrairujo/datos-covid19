@@ -1,15 +1,20 @@
 import pandas as pd
 import numpy as np
+import wget
+import os
 
 # datos de entrada
 # fuente de datos Ministerio de Salud: http://datos.salud.gob.ar/dataset/covid-19-casos-registrados-en-la-republica-argentina
 # chequear columnas con fechas, separador (, o ;), encoding (utf-8 o 16)
 url_archivo_origen = 'https://sisa.msal.gov.ar/datos/descargas/covid-19/files/Covid19Casos.csv'
+# da error al leer el archivo directamente, supongo que por el tamaño del archivo :(
+# opción 2: descargarlo y luego leerlo
 columnas_con_fechas = [8,9,11,13,15,22,24]
 separador = ','
 codificacion = 'utf-8'
 # datos locales
 carpeta_origen = '../csv/'
+archivo_datos_minsal = 'Covid19Casos.csv'
 archivo_municipios = 'municipios_latitud_longitud.csv'
 # dónde guardar los resultados
 carpeta_destino = carpeta_origen
@@ -19,10 +24,20 @@ archivo_destino_datos_acumulados_por_municipio_bsas = 'datos_minsal_acumulados_m
 archivo_destino_datos_diarios_por_municipio_bsas = 'datos_minsal_diarios_municipios_bsas.csv'
 archivo_destino_datos_evolucion_por_municipio_bsas = 'datos_minsal_evolucion_municipios_bsas.csv'
 archivo_destino_datos_positividad_por_municipio_bsas = 'datos_minsal_positividad_municipios_bsas.csv'
+archivo_destino_casos_totales_diarios_por_municipio_bsas = 'datos_minsal_casos_totales_diarios_municipios_bsas.csv'
+
+# 0. descargar archivo
+ruta = carpeta_origen + archivo_datos_minsal
+# si el archivo ya existe, borrarlo
+if os.path.exists(ruta):
+    os.remove(ruta)
+# descargar archivo csv original
+wget.download(url_archivo_origen, ruta)
 
 
-# 1. leer datos del repositorio online
-datos = pd.read_csv(url_archivo_origen, sep=separador, encoding=codificacion, skipinitialspace=True, parse_dates=columnas_con_fechas, infer_datetime_format=True)
+# 1. leer datos
+ruta = carpeta_origen + archivo_datos_minsal
+datos = pd.read_csv(ruta, sep=separador, encoding=codificacion, skipinitialspace=True, parse_dates=columnas_con_fechas, infer_datetime_format=True)
 
 
 # 2. procesar datos
@@ -31,20 +46,18 @@ datos = pd.read_csv(url_archivo_origen, sep=separador, encoding=codificacion, sk
 # agregar una clasificación simplificada de casos en Activo, Recuperado y Fallecido
 datos.loc[datos['clasificacion'].isin([
     'Caso confirmado por criterio clínico-epidemiologico - Fallecido',
-    'Caso confirmado - Fallecido']), 
+    'Caso confirmado por laboratorio - Fallecido']), 
     'clasificacion_simple'] = 'Fallecido'
 datos.loc[datos['clasificacion'].isin([
-    'Caso confirmado - No activo (por laboratorio y tiempo de evolución)',
-    'Caso confirmado - No Activo por criterio de laboratorio',
     'Caso confirmado por laboratorio - No Activo por criterio de laboratorio',
-    'Caso confirmado - No activo (por tiempo de evolución)']), 
+    'Caso confirmado por laboratorio - No activo (por tiempo de evolución)', 
+    'Caso confirmado por criterio clínico-epidemiológico  - No activo (por tiempo de evolución)']), 
     'clasificacion_simple'] = 'Recuperado'
 datos.loc[datos['clasificacion'].isin([
-    'Caso confirmado - Activo',
-    'Caso confirmado - Activo Internado',
+    'Caso confirmado por laboratorio - Activo',
     'Caso confirmado por laboratorio - Activo Internado',
-    'Caso confirmado por criterio clínico - epidemiológico -  Activo internado'
-    'Caso confirmado - Activo con seguimiento negativo']), 
+    'Caso confirmado por criterio clínico - epidemiológico -  Activo internado',
+    'Caso confirmado por criterio clinico-epidemiológico - Activo']), 
     'clasificacion_simple'] = 'Activo'
 # crear nueva columna con edad en años a partir de la edad en años o meses
 datos['edad_actual_anios'] = datos['edad']
@@ -134,6 +147,20 @@ tabla_casos_confirmados_diarios = tabla_casos_confirmados_diarios.resample('D').
 ruta = carpeta_destino + archivo_destino_datos_diarios_por_municipio_bsas
 tabla_casos_confirmados_diarios.to_csv(ruta, index=True)
 
+
+# 6.5. armar tabla de todos los casos ingresados diarios en cada municipio
+datos['todos'] = 1
+tabla_casos_diarios = datos.pivot_table(
+    index=['fecha_apertura'], columns='residencia_departamento_nombre', values='todos',
+    fill_value=0, aggfunc=np.sum
+)
+# rellenar datos faltantes (días que no hubo casos) haciendo un 'resampling' con paso diario ('D')
+tabla_casos_diarios = tabla_casos_diarios.resample('D').sum().fillna(0)
+# calcular casos acumulados
+tabla_casos_diarios = tabla_casos_diarios.cumsum()
+# exportar datos
+ruta = carpeta_destino + archivo_destino_casos_totales_diarios_por_municipio_bsas
+tabla_casos_diarios.to_csv(ruta, index=True)
 
 # 7. armar tabla con la evolucion de casos diarios acumulados en cada municipio
 tabla_evolucion_casos = tabla_casos_confirmados_diarios.cumsum()
