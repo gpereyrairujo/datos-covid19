@@ -1,37 +1,17 @@
-<<<<<<< HEAD
 ## Proyección de casos para el municipio de Tandil
 
-**18/09/2020**
+**22/09/2020**
 
 ---
 ![](proyección_tandil.png?raw=true)
 
-Al día 18/09 figuran en el SISA 604 casos confirmados y 125 casos sospechosos para el municipio de Tandil. En base a la positividad de 47% observada en los últimos días, se estiman a la fecha un total de 673 casos positivos.
+Al día 22/09 figuran en el SISA 715 casos confirmados y 134 casos sospechosos para el municipio de Tandil. En base a la positividad de 46% observada en los últimos días, se estiman a la fecha un total de 778 casos positivos.
 
-En caso de mantenerse una tendencia similar durante los próximos 15 días, se proyecta que al 03/10 la cantidad de casos positivos acumulados sería de entre 1367 y 1895, con un promedio de entre 56 y 146 casos por día.
+En caso de mantenerse una tendencia similar durante los próximos 15 días, se proyecta que al 07/10 la cantidad de casos positivos acumulados sería de entre 1459 y 1827, con un promedio de entre 47 y 103 casos por día.
 
-El número reproductivo R (promedio de infecciones secundarias a partir de cada caso) observado en los últimos 21 días fue de entre 1.52 y 1.86, mientras que la proyección asume que podría llegar a aumentar hasta 2.24 o disminuir hasta 1.21. 
+El número reproductivo R (promedio de infecciones secundarias a partir de cada caso) observado en los últimos 21 días fue de entre 1.32 y 1.49, mientras que la proyección asume que podría llegar a aumentar hasta 1.8 o disminuir hasta 1.05. 
 
 ---
 
 Elaboración: Gustavo Pereyra Irujo / Luciano Velázquez - FCA-UNMDP / INTA / CONICET
 
-=======
-## Proyección de casos para el municipio de Tandil
-
-**18/09/2020**
-
----
-![](proyección_tandil.png?raw=true)
-
-Al día 18/09 figuran en el SISA 604 casos confirmados y 125 casos sospechosos para el municipio de Tandil. En base a la positividad de 47% observada en los últimos días, se estiman a la fecha un total de 673 casos positivos.
-
-En caso de mantenerse una tendencia similar durante los próximos 15 días, se proyecta que al 03/10 la cantidad de casos positivos acumulados sería de entre 1367 y 1895, con un promedio de entre 56 y 146 casos por día.
-
-El número reproductivo R (promedio de infecciones secundarias a partir de cada caso) observado en los últimos 21 días fue de entre 1.52 y 1.86, mientras que la proyección asume que podría llegar a aumentar hasta 2.24 o disminuir hasta 1.21. 
-
----
-
-Elaboración: Gustavo Pereyra Irujo / Luciano Velázquez - FCA-UNMDP / INTA / CONICET
-
->>>>>>> f66bea491a126cbfd71126e3fd92b09dcc085616
