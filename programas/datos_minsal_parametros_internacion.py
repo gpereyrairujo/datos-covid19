@@ -1,31 +1,35 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 # variables de entrada
-carpeta_origen = './'
-archivo_origen = 'covid_19_casos.csv'
-columnas_con_fechas = [8,10,12,14,16,21]
+carpeta_origen = '../csv/'
+archivo_origen = 'datos_minsal_completos.csv'
+columnas_con_fechas = [8,9,11,13,15,22,24]
+separador = ','
+codificacion = 'utf-8'
 carpeta_destino = carpeta_origen
 archivo_destino = 'datos_minsal_parametros_internacion.csv'
 
 # leer datos
 ruta = carpeta_origen + archivo_origen
-datos = pd.read_csv(ruta, sep=';', skipinitialspace=True, parse_dates=columnas_con_fechas, infer_datetime_format=True)
+datos = pd.read_csv(ruta, sep=separador, encoding=codificacion, skipinitialspace=True, parse_dates=columnas_con_fechas, infer_datetime_format=True)
 
 # procesar datos
 
 # dejar sólo casos confirmados
 datos = datos.loc[datos['clasificacion_resumen']=='Confirmado']
 # dejar sólo casos con fecha de inicio de síntomas conocida
-datos = datos[datos.fis.notnull()]
+datos = datos[datos.fecha_inicio_sintomas.notnull()]
 # dejar sólo casos con dato de sexo
 datos = datos.loc[datos['sexo'].isin(['F','M'])]
 # dejar sólo casos resueltos
 datos = datos.loc[datos['clasificacion'].isin([
-    'Caso confirmado - No activo (por laboratorio y tiempo de evolución)',
-    'Caso confirmado - No Activo por criterio de laboratorio',
-    'Caso confirmado - No activo (por tiempo de evolución)',
-    'Caso confirmado - Fallecido'])]
+    'Caso confirmado por criterio clínico-epidemiológico - No activo (por tiempo de evolución)',
+    'Caso confirmado por laboratorio - Fallecido',
+    'Caso confirmado por criterio clínico-epidemiologico - Fallecido',
+    'Caso confirmado por laboratorio - No Activo por criterio de laboratorio',
+    'Caso confirmado por laboratorio - No activo (por tiempo de evolución)'])]
 
 print('casos resueltos:', datos['id_evento_caso'].count())
 print('fallecidos:', datos.loc[datos['fallecido']=='SI', 'id_evento_caso'].count())
@@ -42,13 +46,13 @@ datos.loc[datos.fecha_internacion.notnull(),'internacion'] = 'SI'
 # si fallecido no es SI, entonces es NO
 datos.loc[datos['fallecido']!='SI', 'fallecido'] = 'NO'
 # si asist_resp_mecanica no es SI, entonces es NO
-datos.loc[datos['asist_resp_mecanica']!='SI', 'asist_resp_mecanica'] = 'NO'
+datos.loc[datos['asistencia_respiratoria_mecanica']!='SI', 'asistencia_respiratoria_mecanica'] = 'NO'
 # si cuidado_intensivo no es SI, entonces es NO
 datos.loc[datos['cuidado_intensivo']!='SI', 'cuidado_intensivo'] = 'NO'
 
 # corrección de datos:
 # si tuvo asistencia respiratoria, entonces cuidado_intensivo=SI
-datos.loc[datos['asist_resp_mecanica']=='SI', 'cuidado_intensivo'] = 'SI'
+datos.loc[datos['asistencia_respiratoria_mecanica']=='SI', 'cuidado_intensivo'] = 'SI'
 # si tiene fecha_cui_intensivo, entonces cuidado_intensivo=SI
 datos.loc[datos.fecha_cui_intensivo.notnull(),'cuidado_intensivo'] = 'SI'
 # si cuidado_intensivo=SI, entonces internacion=SI
@@ -58,11 +62,11 @@ datos.loc[datos.fecha_cui_intensivo.notnull() & datos.fecha_internacion.isnull()
 
 # cálculo de duraciones:
 # días de inicio de síntomas a internación
-datos.loc[datos['internacion']=='SI', 'dias_fis_a_internacion'] = (datos['fecha_internacion']-datos['fis']).dt.days
+datos.loc[datos['internacion']=='SI', 'dias_fis_a_internacion'] = (datos['fecha_internacion']-datos['fecha_inicio_sintomas']).dt.days
 # días de inicio de síntomas a cuidado intensivo
-datos.loc[datos['cuidado_intensivo']=='SI', 'dias_fis_a_cuidado_intensivo'] = (datos['fecha_cui_intensivo']-datos['fis']).dt.days
+datos.loc[datos['cuidado_intensivo']=='SI', 'dias_fis_a_cuidado_intensivo'] = (datos['fecha_cui_intensivo']-datos['fecha_inicio_sintomas']).dt.days
 # días de inicio de síntomas a fallecimiento
-datos.loc[datos['fallecido']=='SI', 'dias_fis_a_fallecimiento'] = (datos['fecha_fallecimiento']-datos['fis']).dt.days
+datos.loc[datos['fallecido']=='SI', 'dias_fis_a_fallecimiento'] = (datos['fecha_fallecimiento']-datos['fecha_inicio_sintomas']).dt.days
 # días de internación a cuidado intensivo
 datos.loc[datos['cuidado_intensivo']=='SI', 'dias_internacion_a_cuidado_intensivo'] = (datos['fecha_cui_intensivo']-datos['fecha_internacion']).dt.days
 # días de internación a fallecimiento
@@ -162,6 +166,7 @@ print(len(dias_fis_a_internacion))
 print(len(dias_internacion_a_cuidado_intensivo))
 print(len(dias_cuidado_intensivo_a_fallecimiento))
 
+
 fig1, ax1 = plt.subplots()
 ax1.set_title('Duración etapas modelo neherlab')
 datos_grafico = [
@@ -179,6 +184,15 @@ plt.show()
 # FALTAN FECHAS DE ALTA
 
 
+print('- - -')
+print('mediana inicio de síntomas a internación:',      np.median(dias_fis_a_internacion))
+print('mediana inicio de síntomas a uci:',              np.median(dias_fis_a_cuidado_intensivo))
+print('mediana inicio de síntomas a fallecimiento:',    np.median(dias_fis_a_fallecimiento))
+print('- - -')
+print('mediana inicio de síntomas a internación:',      np.mean(dias_fis_a_internacion))
+print('mediana inicio de síntomas a uci:',              np.mean(dias_fis_a_cuidado_intensivo))
+print('mediana inicio de síntomas a fallecimiento:',    np.mean(dias_fis_a_fallecimiento))
+print('- - -')
 
 
 # seleccionar columnas para exportar
@@ -188,9 +202,9 @@ columnas_origen = [
     'sexo',
     'internacion',
     'cuidado_intensivo',
-    'asist_resp_mecanica',
+    'asistencia_respiratoria_mecanica',
     'fallecido',
-    'fis',
+    'fecha_inicio_sintomas',
     'fecha_apertura',
     'fecha_diagnostico',
     'fecha_internacion',
@@ -202,8 +216,8 @@ columnas_origen = [
     'dias_internacion_a_cuidado_intensivo',
     'dias_cuidado_intensivo_a_fallecimiento',
     'severidad',
-    'provincia_residencia',
-#    'departamento_residencia'
+    'residencia_provincia_nombre',
+    'residencia_departamento_nombre'
 ]
 datos = datos[columnas_origen]
 
